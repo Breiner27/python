@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - TechStore</title>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+</head>
+<body>
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <div class="header">
+        <div class="title">
+            <a href="{% url 'productos:inicio' %}" class="logo">TiendaElectronica</a>
+            <a href="{% url 'productos:inicio' %}" class="nav-icon">
+            <i class="fas fa-home"></i>
+            <span class="d-none d-md-inline">Inicio</span>
+        </a>
+    </div>
+            <div class="profile-avatar">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Avatar">
+                {% else %}
+                    {{ user.first_name|first|upper|default:"U" }}{{ user.last_name|first|upper|default:"" }}
+                {% endif %}
+            </div>
+            <div class="profile-name">
+                {{ user.first_name|default:"Usuario" }} {{ user.last_name }}
+                {% if user.is_admin %}
+                    <span class="admin-badge">Admin</span>
+                {% endif %}
+            </div>
+            <div class="profile-email">{{ user.email }}</div>
+            {% if user.f_ultimo_ingreso %}
+                <div class="last-login">Último acceso: {{ user.f_ultimo_ingreso|date:"d/m/Y H:i" }}</div>
+            {% endif %}
+        </div>
+        <div class="content">
+            <!-- Estadísticas del usuario -->
+            <div class="section full-width">
+                <div class="section-title">Resumen de Actividad</div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ user.pedidos.count|default:"0" }}</div>
+                        <div class="stat-label">Pedidos Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${{ total_gastado|floatformat:2 }}</div>
+                        <div class="stat-label">Total Gastado</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ user.productos_favoritos.count|default:"0" }}</div>
+                         <div class="stat-label">Productos Favoritos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">
+                            {% if user.is_admin %}
+                                Admin
+                            {% elif user.is_staff %}
+                                Staff
+                            {% else %}
+                                Usuario
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Rol</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Información personal -->
+            <div class="section">
+                <div class="section-title">Información Personal</div>
+                <div class="info-item">
+                    <span class="info-label">Usuario:</span>
+                    <span class="info-value">{{ user.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nombre completo:</span>
+                    <span class="info-value">{{ user.first_name }} {{ user.last_name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                {% if user.telefono %}
+                <div class="info-item">
+                    <span class="info-label">Teléfono:</span>
+                    <span class="info-value">{{ user.telefono }}</span>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <span class="info-label">Miembro desde:</span>
+                    <span class="info-value">{{ user.fecha_registro|date:"d/m/Y" }}</span>
+                </div>
+                <a href="{% url 'usuarios:actualizar_perfil' %}" class="btn">Editar Información</a>
+            </div>
+
+            <!-- Dirección -->
+            <div class="section">
+                <div class="section-title">Información de Contacto</div>
+                {% if user.direccion %}
+                <div class="info-item">
+                    <span class="info-label">Dirección:</span>
+                    <span class="info-value">{{ user.direccion }}</span>
+                </div>
+                {% else %}
+                <div class="no-data">No has registrado una dirección</div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <span class="info-label">Estado:</span>
+                    <span class="info-value">
+                        {% if user.is_active %}
+                            <span style="color: #27ae60;">✓ Activo</span>
+                        {% else %}
+                            <span style="color: #e74c3c;">✗ Inactivo</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pedidos recientes -->
+            <div class="section">
+                <div class="section-title">Pedidos Recientes</div>
+                {% if user.pedidos.exists %}
+                    {% for pedido in user.pedidos.all|slice:":3" %}
+                    <div class="info-item">
+                        <span class="info-label">Pedido #{{ pedido.id }}</span>
+                        <span class="info-value">{{ pedido.fecha_creacion|date:"d/m/Y" }}</span>
+                    </div>
+                    {% endfor %}
+                     <a href="{% url 'pedidos:mis_pedidos' %}" class="btn" style="margin-top: 15px;">Ver Todos los Pedidos</a>
+                    {% else %}
+                    <div class="no-data">No tienes pedidos aún</div>
+                    <a href="{% url 'productos:inicio' %}" class="btn" style="margin-top: 15px;">Ir a Comprar</a>
+                {% endif %}
+            </div>
+
+            <!-- Productos favoritos -->
+            <div class="section">
+               <div class="section-title">Productos Favoritos</div>
+    
+                {% if user.productos_favoritos.exists %}
+        {% for favorito in user.productos_favoritos.all|slice:":3" %}
+            <div class="info-item">
+                <span class="info-label">{{ favorito.nombre|truncatechars:25 }}</span>
+                <span class="info-value">${{ favorito.precio }}</span>
+            </div>
+        {% endfor %}
+        <a href="{% url 'productos:favoritos' %}" class="btn" style="margin-top: 15px;">Ver Lista de Deseos</a>
+    {% else %}
+        <div class="no-data">No tienes productos favoritos</div>
+        <a href="{% url 'productos:inicio' %}" class="btn" style="margin-top: 15px;">Explorar Productos</a>
+    {% endif %}
+</div>
+
+            <!-- Configuración de cuenta -->
+            <div class="section full-width">
+                <div class="section-title">Configuración de Cuenta</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="text-align: center;">
+                        <h4>Cambiar Contraseña</h4>
+                        <p style="color: #666; margin: 10px 0;">Actualiza tu contraseña de acceso</p>
+                        <a href="{% url 'usuarios:password_change' %}" class="btn btn-secondary">Cambiar Contraseña</a>
+                    </div>
+                    <div style="text-align: center;">
+                        <h4>Cerrar Sesión</h4>
+                        <p style="color: #666; margin: 10px 0;">Cierra tu sesión de forma segura</p>
+                        <a href="{% url 'usuarios:logout' %}" class="btn btn-danger">Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulación de interactividad
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Animación de entrada para las secciones
+        const sections = document.querySelectorAll('.section');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                section.style.transition = 'all 0.6s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+
+        // Efecto hover mejorado para las tarjetas de estadísticas
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.05)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Auto-ocultar mensajes después de 5 segundos
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

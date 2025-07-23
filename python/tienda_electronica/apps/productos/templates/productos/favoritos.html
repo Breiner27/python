@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Mis Productos Favoritos</h2>
+
+    {% if favoritos %}
+        <div class="row">
+            {% for producto in favoritos %}
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ producto.nombre }}</h5>
+                            <p class="card-text">$ {{ producto.precio }}</p>
+                            <a href="{% url 'productos:detalle' producto.id %}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No tienes productos en tu lista de favoritos.</div>
+        <a href="{% url 'productos:inicio' %}" class="btn btn-primary mt-3">Explorar productos</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Mi Cuenta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Hola, {{ usuario.get_full_name|default:usuario.username }}</h2>
+
+    <div class="row">
+        <!-- Panel de Resumen -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Reseñas Pendientes</h5>
+                    <p class="display-6 text-warning">{{ resenas_pendientes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Pedidos Recientes</h5>
+                    {% if pedidos_recientes %}
+                        <ul class="list-group list-group-flush">
+                            {% for pedido in pedidos_recientes %}
+                            <li class="list-group-item">
+                                <strong>ID Pedido:</strong> {{ pedido.id }} |
+                                <strong>Fecha:</strong> {{ pedido.fecha|date:"d M Y" }} |
+                                <strong>Estado:</strong> {{ pedido.estado }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No tienes pedidos recientes.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-end">
+        <a href="{% url 'usuarios:perfil' %}" class="btn btn-outline-primary">Ver Perfil</a>
+    </div>
+</div>
+{% endblock %}

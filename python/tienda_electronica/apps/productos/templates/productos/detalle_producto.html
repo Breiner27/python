@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ producto.nombre }} - Detalles{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <div class="row">
+        <div class="col-md-5 d-flex flex-column align-items-center">
+            <h2 class="mb-4">{{ producto.nombre }}</h2>
+            {% if producto.imagenes.first %}
+                <img src="{{ producto.imagenes.first.imagen.url }}" class="img-fluid rounded mb-4" alt="{{ producto.nombre }}" style="max-height: 350px; object-fit: contain;">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 350px; width: 100%;">
+                    <i class="fas fa-box fa-4x text-muted"></i>
+                </div>
+            {% endif %}
+
+            {% if producto.precio_oferta %}
+               <h4 class="mb-3">Oferta: <strong>${{ producto.precio_oferta }}</strong><br>
+                    <small class="text-muted">Precio Anterior: <s>${{ producto.precio }}</s></small>
+                </h4>
+            {% else %}
+                <h4 class="mb-3">Precio: ${{ producto.precio }}</h4>
+            {% endif %}
+
+
+            <form class="mt-3">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <p><strong>Cantidad:</strong> {{ producto.stock_cantidad }}</p>
+                     <input type="number" name="cantidad" id="cantidad" class="form-control" value="1" min="1" max="{{ producto.stock_cantidad }}" required>
+                </div>
+                    <!-- Agregar a Carrito -->
+    <button 
+    class="btn btn-success btn-agregar-carrito" 
+    data-producto-id="{{ producto.id }}">
+    <i class="fas fa-cart-plus"></i> Agregar al carrito
+</button>
+
+            </form>
+
+        </div>
+
+        <!-- Columna derecha: especificaciones -->
+        <div class="col-md-7">
+            <h5>Especificaciones</h5>
+            <p><strong>Descripción:</strong> {{ producto.descripcion }}</p>
+            <p><strong>SKU:</strong> {{ producto.sku }}</p>
+            <p><strong>Marca:</strong> {{ producto.marca }}</p>
+            <p><strong>Modelo:</strong> {{ producto.modelo }}</p>
+            <p><strong>Color:</strong> {{ producto.color }}</p>
+            <p><strong>Peso:</strong> {{ producto.peso }}<strong> Kg</strong></p>
+            <p><strong>Dimensiones:</strong> {{ producto.dimensiones }}</p>
+            <p><strong>Especificaciones Técnicas:</strong><br>{{ producto.especificaciones_tecnicas|linebreaks }}</p>
+            <p><strong>Estado:</strong> {{ producto.estado }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

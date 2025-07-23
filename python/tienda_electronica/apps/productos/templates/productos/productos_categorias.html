@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos de {{ categoria_actual.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Productos en {{ categoria_actual.nombre }}</h2>
+
+    <div class="row">
+        {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if producto.imagenes.first %}
+                <img src="{{ producto.imagenes.first.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text">{{ producto.descripcion|truncatewords:10 }}</p>
+                    <a href="{% url 'productos:detalle' producto.id %}" class="btn btn-primary btn-sm">Ver más</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning text-center">
+                No hay productos disponibles en esta categoría.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

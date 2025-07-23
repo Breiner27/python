@@ -1,0 +1,100 @@
+from django.http import JsonResponse
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Carrito, CarritoItem
+from apps.productos.models import ProductosElectronicos
+from django.shortcuts import render,get_object_or_404, redirect
+from django.contrib import messages
+from apps.pedidos.models import Pedido, PedidoItem
+from django.db.models import Sum
+from django.views.decorators.http import require_POST
+
+
+
+
+@login_required
+def agregar_al_carrito(request, producto_id):
+    producto = get_object_or_404(ProductosElectronicos, id=producto_id)
+    cantidad = int(request.POST.get('cantidad', 1))
+
+    carrito, creado = Carrito.objects.get_or_create(usuario=request.user)
+    item, creado_item = CarritoItem.objects.get_or_create(carrito=carrito, producto=producto)
+
+    if not creado_item:
+        item.cantidad += cantidad
+    else:
+        item.cantidad = cantidad
+
+    item.save()
+    return redirect('carrito:ver_carrito')  # Ajusta la URL a tu vista para ver carrito
+
+
+@require_POST
+@login_required
+def agregar_al_carrito_ajax(request):
+    producto_id = request.POST.get('producto_id')
+    producto = get_object_or_404(ProductosElectronicos, id=producto_id)
+
+    carrito, _ = Carrito.objects.get_or_create(usuario=request.user)
+    item, creado_item = CarritoItem.objects.get_or_create(carrito=carrito, producto=producto)
+
+    if not creado_item:
+        item.cantidad += 1
+    else:
+        item.cantidad = 1  
+
+    item.save()
+    total_items = carrito.items.aggregate(total=Sum('cantidad'))['total'] or 0
+
+    return JsonResponse({
+        'success': True,
+        'mensaje': f'{producto.nombre} agregado al carrito.',
+        'total_items': total_items
+    })
+
+
+@login_required
+def ver_carrito(request):
+    carrito, creado = Carrito.objects.get_or_create(usuario=request.user)
+    items = carrito.items.all()
+
+    contexto = {
+        'carrito': carrito,
+        'items': items,
+    }
+    return render(request, 'carrito/ver_carrito.html', contexto)
+
+@login_required
+def eliminar_item_carrito(request, item_id):
+    item = get_object_or_404(CarritoItem, id=item_id, carrito__usuario=request.user)
+    item.delete()
+    return redirect('carrito:ver_carrito')
+
+@login_required
+def realizar_compra(request):
+    carrito = get_object_or_404(Carrito, usuario=request.user)
+
+    if not carrito.items.exists():
+        messages.warning(request, "Tu carrito está vacío.")
+        return redirect('carrito:ver_carrito')
+
+    total = sum(item.producto.precio * item.cantidad for item in carrito.items.all())
+
+    pedido = Pedido.objects.create(
+        usuario=request.user,
+        total=total,
+        estado='Pendiente'
+    )
+
+    for item in carrito.items.all():
+        PedidoItem.objects.create(
+            pedido=pedido,
+            producto=item.producto,
+            cantidad=item.cantidad
+        )
+
+    # Vaciar carrito
+    carrito.items.all().delete()
+
+    messages.success(request, "Compra realizada con éxito.")
+    return redirect('usuarios:perfil')
