@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Mi Carrito{% endblock %}
+
+{% block extra_head %}
+<!-- Agregar referencia al CSS del carrito -->
+<link rel="stylesheet" href="{% static 'css/carrito.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4 text-primary fw-bold">🛒 Tu carrito de {{ user.first_name|default:"Usuario" }}</h2>
+
+    {% if items %}
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            {% if item.producto.imagen %}
+                                <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}">
+                            {% endif %}
+                            <span>{{ item.producto.nombre }}</span>
+                        </div>
+                    </td>
+                    <td>{{ item.cantidad }}</td>
+                    <td>${{ item.producto.precio|floatformat:2 }}</td>
+                    <td>${{ item.subtotal|floatformat:2 }}</td>
+                    <td>
+                        <form action="{% url 'carrito:eliminar_item_carrito' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar producto">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="table-secondary fw-bold">
+                    <td colspan="3" class="text-end">Total:</td>
+                    <td>${{ carrito.total|floatformat:2 }}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'carrito:cargar_modal_pago' %}" class="btn btn-success">
+    <i class="bi bi-check-circle"></i> Realizar compra
+</a>
+    {% else %}
+    <div class="alert alert-info text-center py-4 rounded">
+        <i class="fas fa-info-circle fs-3 mb-2"></i>
+        <p class="mb-0 fs-5">Tu carrito está vacío. <a href="{% url 'productos:lista' %}">¡Explora nuestros productos!</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+<script>
+function abrirModalPago() {
+    fetch("{% url 'carrito:cargar_modal_pago' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("modalContainer").innerHTML = data.html;
+            const modalElement = document.getElementById("paymentModal");
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        });
+}
+</script>
+

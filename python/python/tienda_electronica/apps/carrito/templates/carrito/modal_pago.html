@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Confirmar pago{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h3 class="mb-4 text-primary">Confirmar método de pago</h3>
+
+    <form action="{% url 'carrito:realizar_compra' %}" method="post" onsubmit="return validarFormulario()">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Método de pago:</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="metodo_pago" value="TC" id="pagoTC" checked onchange="toggleCampos()">
+                <label class="form-check-label" for="pagoTC">💳 Tarjeta de crédito</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="metodo_pago" value="TD" id="pagoTD" onchange="toggleCampos()">
+                <label class="form-check-label" for="pagoTD">💳 Tarjeta de débito</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="metodo_pago" value="TB" id="pagoTB" onchange="toggleCampos()">
+                <label class="form-check-label" for="pagoTB">🏦 Transferencia bancaria</label>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="metodo_pago" value="BV" id="pagoBV" onchange="toggleCampos()">
+                <label class="form-check-label" for="pagoBV">📱 Billetera virtual</label>
+            </div>
+        </div>
+
+        <!-- Banco (Transferencia Bancaria) -->
+        <div class="mb-3" id="bancoGroup" style="display: none;">
+            <label for="bancoSelect" class="form-label">Banco (obligatorio para transferencia):</label>
+            <select name="banco" id="bancoSelect" class="form-select">
+                  <option value="">(Selecciona un banco)</option>
+    <option>Bancolombia</option>
+    <option>Banco de Bogotá</option>
+    <option>Banco Davivienda</option>
+    <option>BBVA Colombia</option>
+    <option>Banco de Occidente</option>
+    <option>Banco Popular</option>
+    <option>Banco Caja Social</option>
+    <option>Banco Agrario de Colombia</option>
+    <option>Scotiabank Colpatria</option>
+    <option>Banco GNB Sudameris</option>
+    <option>Itaú Corpbanca</option>
+    <option>Banco AV Villas</option>
+    <option>Banco W</option>
+    <option>Banco Coomeva</option>
+    <option>Banco Falabella</option>
+    <option>Banco Pichincha</option>
+    <option>Banco Finandina</option>
+    <option>Citibank Colombia</option>
+            </select>
+            <div class="text-danger mt-1 d-none" id="errorBanco">⚠️ Selecciona un banco si pagás por transferencia.</div>
+        </div>
+
+        <!-- Número de Cuenta (Transferencia Bancaria) -->
+        <div class="mb-3" id="cuentaGroup" style="display: none;">
+            <label for="numeroCuenta" class="form-label">Número de cuenta:</label>
+            <input type="text" id="numeroCuenta" name="numero_cuenta" class="form-control" placeholder="Ej: 01234567890123456789">
+            <div class="text-danger mt-1 d-none" id="errorCuenta">⚠️ Ingresá un número de cuenta válido.</div>
+        </div>
+
+        <!-- Datos de Tarjeta -->
+        <div class="mb-3" id="tarjetaGroup">
+            <label class="form-label">Datos de la tarjeta:</label>
+            <input type="text" id="numeroTarjeta" name="numero_tarjeta" class="form-control mb-2" placeholder="Número de tarjeta" maxlength="19">
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="vencimientoTarjeta" name="vencimiento" class="form-control mb-2" placeholder="MM/AA">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="cvvTarjeta" name="cvv" class="form-control mb-2" placeholder="CVV" maxlength="4">
+                </div>
+            </div>
+            <div class="text-danger mt-1 d-none" id="errorTarjeta">⚠️ Completá todos los datos de la tarjeta correctamente.</div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-primary">Confirmar y pagar</button>
+            <a href="{% url 'carrito:ver_carrito' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCampos() {
+    const metodo = document.querySelector('input[name="metodo_pago"]:checked').value;
+    const bancoGroup = document.getElementById("bancoGroup");
+    const cuentaGroup = document.getElementById("cuentaGroup");
+    const tarjetaGroup = document.getElementById("tarjetaGroup");
+
+    // Mostrar banco
+    if (metodo === "TB") {
+        bancoGroup.style.display = "block";
+    } else {
+        bancoGroup.style.display = "none";
+        cuentaGroup.style.display = "none";
+        document.getElementById("bancoSelect").value = "";
+        document.getElementById("numeroCuenta").value = "";
+        document.getElementById("errorBanco").classList.add("d-none");
+        document.getElementById("errorCuenta").classList.add("d-none");
+    }
+
+    // Mostrar cuenta solo si hay banco seleccionado
+    const banco = document.getElementById("bancoSelect").value;
+    if (metodo === "TB" && banco !== "") {
+        cuentaGroup.style.display = "block";
+    }
+
+    // Mostrar tarjeta
+    if (metodo === "TC" || metodo === "TD") {
+        tarjetaGroup.style.display = "block";
+    } else {
+        tarjetaGroup.style.display = "none";
+        document.getElementById("numeroTarjeta").value = "";
+        document.getElementById("vencimientoTarjeta").value = "";
+        document.getElementById("cvvTarjeta").value = "";
+        document.getElementById("errorTarjeta").classList.add("d-none");
+    }
+}
+
+function validarFormulario() {
+    const metodo = document.querySelector('input[name="metodo_pago"]:checked').value;
+    const banco = document.getElementById("bancoSelect").value.trim();
+    const errorBanco = document.getElementById("errorBanco");
+    const errorCuenta = document.getElementById("errorCuenta");
+    const errorTarjeta = document.getElementById("errorTarjeta");
+
+    // Validar banco
+    if (metodo === "TB" && banco === "") {
+        errorBanco.classList.remove("d-none");
+        return false;
+    } else {
+        errorBanco.classList.add("d-none");
+    }
+
+    // Validar número de cuenta
+    if (metodo === "TB" && banco !== "") {
+        const numeroCuenta = document.getElementById("numeroCuenta").value.trim();
+        const cuentaValida = /^\d{10,22}$/.test(numeroCuenta); // Ajustable
+        if (!cuentaValida) {
+            errorCuenta.classList.remove("d-none");
+            return false;
+        } else {
+            errorCuenta.classList.add("d-none");
+        }
+    }
+
+    // Validar tarjeta
+    if (metodo === "TC" || metodo === "TD") {
+        const numero = document.getElementById("numeroTarjeta").value.trim();
+        const vencimiento = document.getElementById("vencimientoTarjeta").value.trim();
+        const cvv = document.getElementById("cvvTarjeta").value.trim();
+
+        const tarjetaValida = /^\d{13,19}$/.test(numero);
+        const vencimientoValido = /^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento);
+        const cvvValido = /^\d{3,4}$/.test(cvv);
+
+        if (!tarjetaValida || !vencimientoValido || !cvvValido) {
+            errorTarjeta.classList.remove("d-none");
+            return false;
+        } else {
+            errorTarjeta.classList.add("d-none");
+        }
+    }
+
+    return true;
+}
+
+// Event listeners
+document.addEventListener("DOMContentLoaded", toggleCampos);
+document.getElementById("bancoSelect").addEventListener("change", toggleCampos);
+</script>
+{% endblock %}

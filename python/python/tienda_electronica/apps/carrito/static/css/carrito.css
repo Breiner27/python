@@ -1,0 +1,36 @@
+/* carrito.css */
+
+/* Hover suave para filas */
+table.table-hover tbody tr:hover {
+    background-color: #e7f1ff;
+    transition: background-color 0.3s ease;
+}
+
+/* Botón eliminar con hover */
+button.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+/* Títulos */
+h2 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sombra y bordes para la tabla */
+.table-responsive {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+/* Imagen producto */
+.table-responsive img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 12px;
+}

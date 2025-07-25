@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo - Electrónica Tech{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar de Categorías -->
+    <div class="col-md-3">
+        <h4>Categorías</h4>
+        <div class="list-group">
+            <a href="{% url 'productos:lista' %}" class="list-group-item list-group-item-action">
+                <i class="fas fa-list"></i> Todas las Categorías
+            </a>
+            {% for categoria in categorias %}
+            <a href="{% url 'productos:por_categoria' categoria.slug %}" class="list-group-item list-group-item-action {% if categoria.slug == categoria_actual.slug %}active{% endif %}">
+                <i class="fas fa-tag"></i> {{ categoria.nombre }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Productos Electrónicos</h2>
+            <span class="badge bg-secondary">{{ productos|length }} disponibles</span>
+        </div>
+
+        <div class="row">
+            {% for producto in productos %}
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if producto.imagenes.first %}
+                            <img src="{{ producto.imagenes.first.imagen.url }}" class="img-fluid rounded-start h-100 w-100" alt="{{ producto.nombre }}" style="object-fit: contain; background-color: #f8f9fa;">
+                            {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center h-100" style="min-height: 200px;">
+                                <i class="fas fa-box-open fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ producto.nombre }}</h6>
+                                <p class="card-text small">{{ producto.descripcion|truncatewords:10 }}</p>
+                                <p class="card-text">
+                                    {% if producto.precio_oferta %}
+                                        <strong class="text-success">${{ producto.precio_oferta }}</strong>
+                                        <br>
+                                        <small class="text-muted"><s>${{ producto.precio }}</s></small>
+                                    {% else %}
+                                        <strong class="text-success">${{ producto.precio }}</strong>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag"></i> {{ producto.categoria.nombre }}<br>
+                                        <i class="fas fa-cube"></i> Stock: {{ producto.stock_cantidad }}
+                                    </small>
+                                </p>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+    <!-- Ver Detalles -->
+    <a href="{% url 'productos:detalle' producto.id %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-info-circle"></i> Detalles
+</a>
+
+<!-- Agregar a Carrito -->
+<button 
+    class="btn btn-outline-success btn-sm btn-agregar-carrito" 
+    data-producto-id="{{ producto.id }}">
+    <i class="fas fa-cart-plus"></i>
+</button>
+
+<!-- Favoritos -->
+<button class="btn-favorito btn btn-sm {% if producto in user.productos_favoritos.all %}btn-danger{% else %}btn-outline-danger{% endif %}" data-producto-id="{{ producto.id }}">
+    <i class="{% if producto in user.productos_favoritos.all %}fas{% else %}far{% endif %} fa-heart"></i>
+</button>
+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> No hay productos disponibles en esta categoría.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
